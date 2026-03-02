@@ -1,0 +1,55 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('penilaian_komponens', function (Blueprint $table) {
+            $table->id();
+            
+            // Relasi ke tabel mahasiswas menggunakan NIM
+            $table->string('nim');
+            $table->foreign('nim')->references('nim')->on('mahasiswas')->onDelete('cascade');
+            
+            // Relasi ke tabel mata_kuliah menggunakan kode_mk
+            $table->string('kode_mk');
+            $table->foreign('kode_mk')->references('kode_mk')->on('mata_kuliahs')->onDelete('cascade');
+            
+            // Metadata Tambahan
+            $table->integer('smt'); // Semester 1-14
+            $table->string('tahun_akademik', 20); // Contoh: 2025/2026
+            
+            // Relasi ke Dosen yang Login (User)
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+
+            // Nilai Komponen
+            $table->decimal('kehadiran', 5, 2)->default(0);
+            $table->decimal('tugas', 5, 2)->default(0);
+            $table->decimal('kuiz', 5, 2)->default(0);
+            $table->decimal('praktik', 5, 2)->default(0);
+            $table->decimal('uts', 5, 2)->default(0);
+            $table->decimal('uas', 5, 2)->default(0);
+            $table->decimal('nilai_mbkm', 5, 2)->nullable();
+            
+            // Info Dosen
+            $table->string('dosen1', 200); 
+            $table->string('dosen2', 200)->nullable(); 
+            $table->string('dosen3', 200)->nullable(); 
+            
+            // Hasil Akhir
+            $table->decimal('nilai_akhir', 5, 2)->nullable();
+            $table->char('nilai_huruf', 2)->nullable();
+            
+            $table->timestamps();
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('penilaian_komponens');
+    }
+};
