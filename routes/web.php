@@ -47,30 +47,30 @@ Route::middleware([
 
     // Kelompok Menu Kurikulum OBE
     Route::prefix('kurikulum-obe')->group(function () {
-    // Tabel 1 - Tabel 5: Profil & CPL
+        // Tabel 1 - Tabel 5: Profil & CPL
         Route::resource('pl', PlController::class)->names('pl');
         Route::resource('cpl-sndikti', CplSndiktiController::class)->names('cpl-sndikti');
         Route::resource('cpl', CplController::class)->names('cpl');
         Route::resource('cpl-pl', CplPlController::class)->names('cpl-pl');
 
-    // Tabel 6 - Tabel 7: Bahan Kajian
+        // Tabel 6 - Tabel 7: Bahan Kajian
         Route::resource('bk', BkController::class)->names('bk');
         Route::resource('cpl-bk', CplBkController::class)->names('cpl-bk');
 
-    // Tabel 8 - Tabel 12: Mata Kuliah & Pemetaan
+        // Tabel 8 - Tabel 12: Mata Kuliah & Pemetaan
         Route::resource('mata-kuliah', MataKuliahController::class)->names('mata-kuliah');
         Route::resource('bk-mk', BkMkController::class)->names('bk-mk');
         Route::resource('cpl-mk', CplMkController::class)->names('cpl-mk');
         Route::resource('cplbk-mk', CplBkMkController::class)->names('cplbk-mk');
         Route::resource('organisasi-mk', OrganisasiMkController::class)->names('organisasi-mk');
 
-    // Tabel 13 - Tabel 16: CPMK, Sub-CPMK & Penilaian
+        // Tabel 13 - Tabel 16: CPMK, Sub-CPMK & Penilaian
         Route::resource('cpmk', CpmkController::class)->names('cpmk');
         Route::resource('sub-cpmk', SubCpmkController::class)->names('sub-cpmk');
         Route::resource('relasi', RelasiCapaianController::class)->names('relasi');
         Route::resource('metodepenilaian', MetodePenilaianController::class)->names('metodepenilaian');
 
-    // Tambahan: Ringkasan Kurikulum
+        // Tambahan: Ringkasan Kurikulum
         Route::resource('kurikulum', KurikulumController::class)->names('kurikulum');
     });
 
@@ -85,27 +85,27 @@ Route::middleware([
         // Proses Nilai & Import
         Route::get('/import-nilai', [PenilaianController::class, 'importForm'])->name('penilaian.import');
         Route::post('/import-nilai', [PenilaianController::class, 'importProses'])->name('penilaian.import.proses');
-        
+
         // Evaluasi & Laporan
         Route::get('/evaluasi-cpmk', [EvaluasiCpmkController::class, 'index'])->name('penilaian.evaluasi_cpmk');
-// Route baru untuk hasil evaluasi
+        // Route baru untuk hasil evaluasi
         Route::get('/evaluasi-cpmk/hasil', \App\Livewire\EvaluasiCpmkManager::class)->name('penilaian.evaluasi_cpmk_hasil');
 
         Route::get('/matriks-cpl', [PenilaianController::class, 'matriksCpl'])->name('matriks-cpl');
         Route::get('/portofolio', [PenilaianController::class, 'portofolio'])->name('portofolio');
     });
     Route::get('/portofolio/download/{kode_mk}/{angkatan}', [PortofolioController::class, 'download'])
-    ->name('portofolio.download');
+        ->name('portofolio.download');
 
     // Pastikan bagian ->name(...) sesuai dengan yang dipanggil di view
-Route::get('/penilaian-obe/portofolio', [PortofolioController::class, 'index'])
-    ->name('portofolio.index'); 
+    Route::get('/penilaian-obe/portofolio', [PortofolioController::class, 'index'])
+        ->name('portofolio.index');
 
-// Route untuk download (sudah benar menggunakan kode_mk dan angkatan)
-Route::match(['get', 'post'], '/portofolio/download/{kode_mk}/{angkatan}', [PortofolioController::class, 'download'])
-    ->name('portofolio.download');
-// Route download yang sudah ada sebelumnya
-Route::match(['get', 'post'], '/portofolio/download/{kode_mk}/{angkatan}', [PortofolioController::class, 'download'])->name('portofolio.download');
+    // Route untuk download (sudah benar menggunakan kode_mk dan angkatan)
+    Route::match(['get', 'post'], '/portofolio/download/{kode_mk}/{angkatan}', [PortofolioController::class, 'download'])
+        ->name('portofolio.download');
+    // Route download yang sudah ada sebelumnya
+    Route::match(['get', 'post'], '/portofolio/download/{kode_mk}/{angkatan}', [PortofolioController::class, 'download'])->name('portofolio.download');
 
     Route::middleware([
         'auth:sanctum',
@@ -113,19 +113,17 @@ Route::match(['get', 'post'], '/portofolio/download/{kode_mk}/{angkatan}', [Port
         'verified',
     ])->group(function () {
 
-    // ... route dashboard dan lainnya ...
+        // ... route dashboard dan lainnya ...
 
-    // Route untuk Manajemen User
+        // Route untuk Manajemen User
         Route::prefix('users')->name('users.')->group(function () {
             Route::get('/dosen', [UserController::class, 'dosen'])->name('dosen');
         });
-
     });
     Route::get('/users/dosen', [DosenController::class, 'index'])->name('users.dosen');
 
     Route::get('/ketercapaian-cpl', [KetercapaianCplController::class, 'index'])->name('cpl.ketercapaian');
     Route::get('/analisis-cpl', [AnalisisCplController::class, 'index'])->name('cpl.analisis');
-Route::get('/fakultas', [FakultasController::class, 'index'])->name('fakultas.index');
+    Route::get('/fakultas', [FakultasController::class, 'index'])->name('fakultas.index');
     Route::get('/prodi', [ProdiController::class, 'index'])->name('prodi.index');
-
 });

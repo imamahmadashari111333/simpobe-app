@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -11,10 +12,11 @@ class BahanKajian extends Model
     protected $table = 'bahan_kajian';
 
     protected $fillable = [
-        'kode_bk', 
-        'bahan_kajian', 
-        'deskripsi', 
-        'referensi', 
-        'knowledge_area','prodi'
+        'kode_bk',
+        'bahan_kajian',
+        'deskripsi',
+        'referensi',
+        'knowledge_area',
+        'prodi'
     ];
 }
