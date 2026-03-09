@@ -67,13 +67,12 @@ class MetodePenilaianManager extends Component
         ]);
     }
 
-    // --- FITUR SAVE / UPDATE (DIPERBAIKI) ---
+    // --- FITUR SAVE / UPDATE ---
 
     public function save()
     {
         $this->validate();
 
-        // Helper untuk memastikan nilai kosong menjadi 0
         $toZero = function($value) {
             return (is_null($value) || $value === '') ? 0 : $value;
         };
@@ -97,7 +96,17 @@ class MetodePenilaianManager extends Component
         session()->flash('message', 'Data bobot berhasil disimpan.');
     }
 
-    // --- FITUR IMPORT (TETAP TAHAN BANTING) ---
+    // --- FITUR IMPORT ---
+
+    /**
+     * Memunculkan Modal Import
+     * Fungsi ini yang tadinya hilang sehingga menyebabkan eror
+     */
+    public function showImportModal()
+    {
+        $this->reset('file_import'); // Reset file input sebelumnya
+        $this->confirmingImport = true;
+    }
 
     public function importProses()
     {
@@ -152,16 +161,16 @@ class MetodePenilaianManager extends Component
         }
     }
 
-    // --- HELPER LAINNYA ---
-
     public function downloadTemplate()
     {
         $filePath = public_path('templates/metode_penilaian.xlsx');
         if (file_exists($filePath)) {
             return response()->download($filePath, 'Template_Metode_Penilaian.xlsx');
         }
-        session()->flash('error', 'File template tidak ditemukan.');
+        session()->flash('error', 'File template tidak ditemukan di folder public/templates/.');
     }
+
+    // --- HELPER LAINNYA ---
 
     public function showModal()
     {
