@@ -11,7 +11,7 @@
         </div>
     @endif
 
-    {{-- HEADER: Judul & Tombol Aksi (Dibuat mirip Sub-CPMK) --}}
+    {{-- HEADER --}}
     <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
         <div>
             <h3 class="text-lg font-semibold text-gray-800">Metode & Bobot Penilaian</h3>
@@ -21,14 +21,12 @@
         </div>
 
         <div class="flex flex-wrap items-center gap-2 w-full md:w-auto justify-end">
-            {{-- Pencarian --}}
             <div class="relative w-full md:w-64">
                 <input wire:model.live.debounce.300ms="search" type="text" 
                     placeholder="Cari MK atau Kode..." 
                     class="w-full text-xs border-gray-300 focus:ring-blue-500 rounded-md shadow-sm">
             </div>
 
-            {{-- Tombol Aksi (Hanya Kaprodi) --}}
             @if(Auth::user()->role === 'Kaprodi')
                 <x-secondary-button wire:click="showImportModal" class="h-9 text-xs">
                     Import Excel
@@ -128,44 +126,42 @@
     </div>
 
     {{-- MODAL IMPORT --}}
-<x-dialog-modal wire:model="confirmingImport">
-    <x-slot name="title">Import Metode Penilaian</x-slot>
-    <x-slot name="content">
-        {{-- Tombol Download Template --}}
-        <div class="mb-4">
-            <x-secondary-button wire:click="downloadTemplate" class="text-xs">
-                Download Template Excel
-            </x-secondary-button>
-        </div>
+    <x-dialog-modal wire:model="confirmingImport">
+        <x-slot name="title">Import Metode Penilaian</x-slot>
+        <x-slot name="content">
+            <div class="mb-4">
+                <x-secondary-button wire:click="downloadTemplate" class="text-xs">
+                    Download Template Excel
+                </x-secondary-button>
+            </div>
 
-        <div class="bg-blue-50 p-3 rounded mb-4 text-[11px] text-blue-700 leading-relaxed border border-blue-200">
-            <p class="font-bold mb-1 underline">Instruksi:</p>
-            <ul class="list-disc ml-4">
-                <li>Gunakan template yang telah diunduh.</li>
-                <li>Kolom <b>id</b> boleh dikosongkan.</li>
-                <li>Pastikan <b>kode_mk</b>, <b>kode_cpmk</b>, dan <b>kode_sub_cpmk</b> sudah terdaftar di sistem.</li>
-                <li>Urutan kolom: id, kode_mk, kode_cpmk, kode_sub_cpmk, mbkm, hadir, tugas, quiz, uts, uas, praktik, prodi.</li>
-            </ul>
-        </div>
+            <div class="bg-blue-50 p-3 rounded mb-4 text-[11px] text-blue-700 leading-relaxed border border-blue-200">
+                <p class="font-bold mb-1 underline">Instruksi:</p>
+                <ul class="list-disc ml-4">
+                    <li>Gunakan template yang telah diunduh.</li>
+                    <li>Pastikan kode MK dan CPMK sesuai.</li>
+                    <li>Urutan kolom: id, kode_mk, kode_cpmk, kode_sub_cpmk, mbkm, hadir, tugas, quiz, uts, uas, praktik, prodi.</li>
+                </ul>
+            </div>
 
-        <div class="mt-4">
-            <x-label value="Pilih File Excel yang Akan Diimport" />
-            <input type="file" wire:model="file_import" class="mt-1 block w-full text-xs" />
-            <x-input-error for="file_import" class="mt-2" />
-        </div>
-    </x-slot>
-    <x-slot name="footer">
-        <x-secondary-button wire:click="$set('confirmingImport', false)">Batal</x-secondary-button>
-        <x-button class="ml-2 bg-indigo-600" wire:click="importProses">Proses Import</x-button>
-    </x-slot>
-</x-dialog-modal>
+            <div class="mt-4">
+                <x-label value="Pilih File Excel yang Akan Diimport" />
+                <input type="file" wire:model="file_import" class="mt-1 block w-full text-xs" />
+                <div wire:loading wire:target="file_import" class="text-xs text-blue-500 mt-1">Mengunggah...</div>
+                <x-input-error for="file_import" class="mt-2" />
+            </div>
+        </x-slot>
+        <x-slot name="footer">
+            <x-secondary-button wire:click="$set('confirmingImport', false)">Batal</x-secondary-button>
+            <x-button class="ml-2 bg-indigo-600" wire:click="importProses" wire:loading.attr="disabled">Proses Import</x-button>
+        </x-slot>
+    </x-dialog-modal>
 
     {{-- MODAL INPUT & EDIT --}}
     <x-dialog-modal wire:model="confirmingItemAddEdit">
         <x-slot name="title">{{ $selected_id ? 'Edit Bobot Penilaian' : 'Tambah Bobot Penilaian' }}</x-slot>
         <x-slot name="content">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                {{-- Form input tetap seperti sebelumnya untuk kemudahan input user --}}
                 <div>
                     <x-label value="Mata Kuliah" />
                     <input list="list_mk" wire:model.live="kode_mk" class="mt-1 block w-full border-gray-300 rounded text-sm" placeholder="Kode MK..." {{ $selected_id ? 'disabled' : '' }}>
