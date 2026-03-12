@@ -21,6 +21,7 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
             'photo' => ['nullable', 'mimes:jpg,jpeg,png', 'max:1024'],
+            'prodi' => ['required', 'string', 'max:255'], // Tambahkan validasi prodi
         ])->validateWithBag('updateProfileInformation');
 
         if (isset($input['photo'])) {
@@ -36,6 +37,13 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
                 'email' => $input['email'],
             ])->save();
         }
+
+        // Update atau Buat data di tabel DosenProfil
+        // Pastikan Anda sudah membuat relasi 'dosenProfil' di Model User
+        $user->dosenProfil()->updateOrCreate(
+            ['user_id' => $user->id],
+            ['prodi' => $input['prodi']]
+        );
     }
 
     /**
@@ -50,6 +58,12 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
             'email' => $input['email'],
             'email_verified_at' => null,
         ])->save();
+
+        // Tetap update prodi meskipun email berubah
+        $user->dosenProfil()->updateOrCreate(
+            ['user_id' => $user->id],
+            ['prodi' => $input['prodi']]
+        );
 
         $user->sendEmailVerificationNotification();
     }

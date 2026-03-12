@@ -29,33 +29,63 @@ class CplBkManager extends Component
     ];
 
     public function mount()
-    {
-        $this->prodi = Auth::user()->profil->prodi ?? null;
-    }
+{
+    // Mengambil prodi dari session profil dosen yang login
+    $this->prodi = Auth::user()->profil->prodi ?? null;
 
-    public function render()
-    {
-        $query = CplBk::with(['bahanKajian', 'cpl'])
-            ->where('prodi', $this->prodi) // Pastikan filter prodi ada di sini
-            ->when($this->search, function($q) {
-                $q->where(function($sub) {
-                    $sub->where('kode_bk', 'like', '%' . $this->search . '%')
-                        ->orWhere('kode_cpl', 'like', '%' . $this->search . '%')
-                        ->orWhereHas('bahanKajian', function($bk) {
-                            $bk->where('bahan_kajian', 'like', '%' . $this->search . '%');
-                        })
-                        ->orWhereHas('cpl', function($cpl) {
-                            $cpl->where('deskripsi_cpl', 'like', '%' . $this->search . '%');
-                        });
-                });
+    if (!$this->prodi) {
+        session()->flash('error', 'Data Prodi tidak ditemukan pada profil Anda.');
+    }
+}
+
+public function render()
+{
+    $query = CplBk::with([
+            'bahanKajian' => function($q) {
+                $q->where('prodi', $this->prodi);
+            },
+            'cpl' => function($q) {
+                $q->where('prodi', $this->prodi);
+            }
+        ])
+        // 1. Filter tabel pivot utama
+        ->where('prodi', $this->prodi)
+        
+        // 2. Keamanan: Hanya tampilkan jika relasinya memang ada di prodi tersebut
+        ->whereHas('bahanKajian', function($q) {
+            $q->where('prodi', $this->prodi);
+        })
+        ->whereHas('cpl', function($q) {
+            $q->where('prodi', $this->prodi);
+        })
+        
+        // 3. Fitur Pencarian
+        ->when($this->search, function($q) {
+            $q->where(function($sub) {
+                $sub->where('kode_bk', 'like', '%' . $this->search . '%')
+                    ->orWhere('kode_cpl', 'like', '%' . $this->search . '%')
+                    ->orWhereHas('bahanKajian', function($bk) {
+                        $bk->where('bahan_kajian', 'like', '%' . $this->search . '%');
+                    })
+                    ->orWhereHas('cpl', function($cpl) {
+                        $cpl->where('deskripsi_cpl', 'like', '%' . $this->search . '%');
+                    });
             });
+        });
 
-        return view('livewire.cpl-bk-manager', [
-            'cpl_bks' => $query->get()->groupBy('kode_bk'),
-            'list_bk' => BahanKajian::where('prodi', $this->prodi)->orderBy('kode_bk')->get(),
-            'list_cpl' => Cpl::where('prodi', $this->prodi)->orderBy('kode_cpl')->get(),
-        ]);
-    }
+    return view('livewire.cpl-bk-manager', [
+        'cpl_bks' => $query->get()->groupBy('kode_bk'),
+        
+        // Dropdown List (Sudah Terfilter Prodi)
+        'list_bk' => BahanKajian::where('prodi', $this->prodi)
+            ->orderBy('kode_bk')
+            ->get(),
+            
+        'list_cpl' => Cpl::where('prodi', $this->prodi)
+            ->orderBy('kode_cpl')
+            ->get(),
+    ]);
+}
 
     public function downloadTemplate()
     {

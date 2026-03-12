@@ -75,4 +75,10 @@ public function profil(): \Illuminate\Database\Eloquent\Relations\HasOne
 {
     return $this->hasOne(DosenProfil::class, 'user_id');
 }
+
+public function dosenProfil()
+{
+    return $this->hasOne(DosenProfil::class, 'user_id');
+}
+
 }

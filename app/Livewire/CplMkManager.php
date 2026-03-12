@@ -31,42 +31,67 @@ class CplMkManager extends Component
     ];
 
     public function mount()
-    {
-        $this->prodi = Auth::user()->profil->prodi ?? null;
-    }
+{
+    // Mengambil prodi dari relasi profil user yang sedang login
+    $this->prodi = Auth::user()->profil->prodi ?? null;
 
-    public function render()
-    {
-        // Filter list MK untuk dropdown modal
-        $filtered_mk = MataKuliah::where('prodi', $this->prodi)
-            ->where(function($query) {
-                $query->where('nama_mk', 'like', '%' . $this->search_mk . '%')
-                      ->orWhere('kode_mk', 'like', '%' . $this->search_mk . '%');
-            })
-            ->orderBy('smt', 'asc')
-            ->orderBy('kode_mk', 'asc')
-            ->get();
-            
-        // Query utama tabel dengan filter prodi
-        $cpl_mks_query = CplMk::with(['cpl', 'mataKuliah'])
-            ->where('prodi', $this->prodi) // Proteksi Prodi Utama
-            ->when($this->search_table, function($q) {
-                $q->where(function($sub) {
-                    $sub->where('kode_cpl', 'like', '%' . $this->search_table . '%')
-                        ->orWhere('kode_mk', 'like', '%' . $this->search_table . '%')
-                        ->orWhereHas('mataKuliah', function($mk) {
-                            $mk->where('nama_mk', 'like', '%' . $this->search_table . '%');
-                        });
-                });
-            })
-            ->get();
-
-        return view('livewire.cpl-mk-manager', [
-            'cpl_mks' => $cpl_mks_query->sortBy('kode_cpl')->groupBy('kode_cpl'),
-            'list_cpl' => Cpl::where('prodi', $this->prodi)->orderBy('kode_cpl', 'asc')->get(),
-            'list_mk' => $filtered_mk,
-        ]);
+    if (!$this->prodi) {
+        session()->flash('error', 'Data Prodi tidak ditemukan. Pastikan profil Anda sudah terisi.');
     }
+}
+
+public function render()
+{
+    // 1. Filter list MK untuk dropdown modal (Sudah Terproteksi Prodi)
+    $filtered_mk = MataKuliah::where('prodi', $this->prodi)
+        ->where(function($query) {
+            $query->where('nama_mk', 'like', '%' . $this->search_mk . '%')
+                  ->orWhere('kode_mk', 'like', '%' . $this->search_mk . '%');
+        })
+        ->orderBy('smt', 'asc')
+        ->orderBy('kode_mk', 'asc')
+        ->get();
+        
+    // 2. Query utama tabel dengan Eager Loading terfilter
+    $cpl_mks_query = CplMk::with([
+            'cpl' => function($q) {
+                $q->where('prodi', $this->prodi);
+            },
+            'mataKuliah' => function($q) {
+                $q->where('prodi', $this->prodi);
+            }
+        ])
+        ->where('prodi', $this->prodi) // Proteksi tabel pivot
+        
+        // 3. Keamanan Ganda: Pastikan relasi hanya menarik data dari prodi yang sama
+        ->whereHas('cpl', function($q) {
+            $q->where('prodi', $this->prodi);
+        })
+        ->whereHas('mataKuliah', function($q) {
+            $q->where('prodi', $this->prodi);
+        })
+        
+        // 4. Fitur Pencarian Tabel
+        ->when($this->search_table, function($q) {
+            $q->where(function($sub) {
+                $sub->where('kode_cpl', 'like', '%' . $this->search_table . '%')
+                    ->orWhere('kode_mk', 'like', '%' . $this->search_table . '%')
+                    ->orWhereHas('mataKuliah', function($mk) {
+                        $mk->where('nama_mk', 'like', '%' . $this->search_table . '%');
+                    })
+                    ->orWhereHas('cpl', function($c) {
+                        $c->where('deskripsi_cpl', 'like', '%' . $this->search_table . '%');
+                    });
+            });
+        })
+        ->get();
+
+    return view('livewire.cpl-mk-manager', [
+        'cpl_mks' => $cpl_mks_query->sortBy('kode_cpl')->groupBy('kode_cpl'),
+        'list_cpl' => Cpl::where('prodi', $this->prodi)->orderBy('kode_cpl', 'asc')->get(),
+        'list_mk' => $filtered_mk,
+    ]);
+}
 
     // --- FITUR IMPORT ---
 

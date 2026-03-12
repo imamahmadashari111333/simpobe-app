@@ -42,78 +42,83 @@
 </div>
                 
                 <div class="w-full overflow-x-auto shadow-sm border border-gray-200 rounded-lg">
-    <table class="w-full min-w-full divide-y divide-gray-200" id="portofolioTable">
-        <thead class="bg-gray-50">
-            <tr>
-                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-12">No</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Mata Kuliah</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tahun Ajaran</th>
-                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Penelitian</th>
-                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">pengabmas</th>
-                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Aksi</th>
-            </tr>
-        </thead>
-        <tbody class="bg-white divide-y divide-gray-200">
-            @forelse($data_portofolio as $index => $dt)
-            <tr class="hover:bg-gray-50 transition">
-                <td class="px-4 py-4 text-sm text-gray-500 text-center font-medium">{{ $index + 1 }}</td>
-                <td class="px-6 py-4">
-                    <div class="text-sm font-medium text-gray-900 search-target">{{ $dt->nama_mk }}</div>
-                    <div class="text-sm text-gray-500 font-mono search-target">{{ $dt->kode_mk }}</div>
-                </td>
-                <td class="px-6 py-4 text-sm text-gray-600">
-                    {{ $dt->tahun_akademik }} 
-                    <span class="text-xs text-gray-400">({{ $dt->semester }})</span>
-                </td>
-                
-                {{-- KOLOM INTEGRASI PENELITIAN --}}
-                <td class="px-6 py-4 text-center">
-                    @if($dt->is_penelitian)
-                        <span class="text-emerald-600 bg-emerald-100 rounded-full p-1 inline-block">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
-                        </span>
-                    @else
-                        <span class="text-gray-200">—</span>
-                    @endif
-                </td>
+    <table class="w-full min-w-full border-collapse border border-gray-200" id="portofolioTable">
+    <thead class="bg-gray-50">
+        <tr>
+            <th class="border border-gray-200 px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase w-12">No</th>
+            <th class="border border-gray-200 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Mata Kuliah</th>
+            <th class="border border-gray-200 px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Tahun Ajaran</th>
+            <th class="border border-gray-200 px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Semester</th>
+            <th class="border border-gray-200 px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Penelitian</th>
+            <th class="border border-gray-200 px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Pengabmas</th>
+            <th class="border border-gray-200 px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Aksi</th>
+        </tr>
+    </thead>
+    <tbody class="bg-white">
+        @forelse($data_portofolio as $index => $dt)
+        <tr class="hover:bg-gray-50 transition">
+            <td class="border border-gray-200 px-4 py-4 text-sm text-gray-500 text-center font-medium">
+                {{ $index + 1 }}
+            </td>
+            <td class="border border-gray-200 px-6 py-4">
+                <div class="text-sm font-medium text-gray-900 search-target">{{ $dt->nama_mk }}</div>
+                <div class="text-sm text-gray-500 font-mono search-target">{{ $dt->kode_mk }}</div>
+            </td>
+            <td class="border border-gray-200 px-6 py-4 text-center text-sm text-gray-600">
+                {{ $dt->tahun_akademik }}
+            </td>
+            <td class="border border-gray-200 px-6 py-4 text-center text-sm text-gray-600 font-semibold uppercase">
+                {{ $dt->semester }}
+            </td>
+            
+            {{-- KOLOM INTEGRASI PENELITIAN --}}
+            <td class="border border-gray-200 px-6 py-4 text-center">
+                @if($dt->is_penelitian)
+                    <span class="text-emerald-600 bg-emerald-100 rounded-full p-1 inline-block">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                    </span>
+                @else
+                    <span class="text-gray-200">—</span>
+                @endif
+            </td>
 
-                {{-- KOLOM INTEGRASI pengabmas --}}
-                <td class="px-6 py-4 text-center">
-                    @if($dt->is_pengabmas)
-                        <span class="text-blue-600 bg-blue-100 rounded-full p-1 inline-block">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
-                        </span>
-                    @else
-                        <span class="text-gray-200">—</span>
-                    @endif
-                </td>
+            {{-- KOLOM INTEGRASI PENGABMAS --}}
+            <td class="border border-gray-200 px-6 py-4 text-center">
+                @if($dt->is_pengabmas)
+                    <span class="text-blue-600 bg-blue-100 rounded-full p-1 inline-block">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                    </span>
+                @else
+                    <span class="text-gray-200">—</span>
+                @endif
+            </td>
 
-                <td class="px-6 py-4 text-center">
-                    @if($dt->hasPortofolio)
-                        <a href="{{ route('portofolio.download', ['kode_mk' => $dt->kode_mk, 'angkatan' => $dt->angkatan]) }}" 
-                           target="_blank"
-                           class="inline-flex items-center px-4 py-2 bg-emerald-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-emerald-700 shadow-sm transition">
-                            <svg class="w-4 h-4 me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
-                            </svg>
-                            Download - {{ $dt->angkatan }}
-                        </a>
-                    @else
-                        <div class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200">
-                            Belum Terisi ({{ $dt->angkatan }})
-                        </div>
-                    @endif
-                </td>
-            </tr>
-            @empty
-            <tr>
-                <td colspan="6" class="px-6 py-12 text-center">
-                    <p class="text-sm text-gray-500">Tidak ada data mata kuliah ditemukan.</p>
-                </td>
-            </tr>
-            @endforelse
-        </tbody>
-    </table>
+            <td class="border border-gray-200 px-6 py-4 text-center">
+                @if($dt->hasPortofolio)
+                    <a href="{{ route('portofolio.download', ['kode_mk' => $dt->kode_mk, 'angkatan' => $dt->angkatan]) }}" 
+                       target="_blank"
+                       class="inline-flex items-center px-4 py-2 bg-emerald-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-emerald-700 shadow-sm transition">
+                        <svg class="w-4 h-4 me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                        </svg>
+                        Download
+                    </a>
+                @else
+                    <div class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200">
+                        Belum Terisi
+                    </div>
+                @endif
+            </td>
+        </tr>
+        @empty
+        <tr>
+            <td colspan="7" class="border border-gray-200 px-6 py-12 text-center">
+                <p class="text-sm text-gray-500">Tidak ada data mata kuliah ditemukan.</p>
+            </td>
+        </tr>
+        @endforelse
+    </tbody>
+</table>
 </div>
             </div>
         </div>

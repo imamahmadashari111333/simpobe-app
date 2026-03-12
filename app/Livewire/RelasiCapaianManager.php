@@ -149,45 +149,70 @@ class RelasiCapaianManager extends Component
     }
 
     public function render()
-    {
-        $list_mk = [];
-        if (strlen($this->searchMK) > 0) {
-            $list_mk = MataKuliah::where('prodi', $this->prodi)
-                ->where(function($query) {
-                    $query->where('kode_mk', 'like', '%' . $this->searchMK . '%')
-                          ->orWhere('nama_mk', 'like', '%' . $this->searchMK . '%');
-                })->take(5)->get();
-        }
-
-        $cplNumber = preg_replace('/[^0-9]/', '', $this->kode_cpl);
-        $filtered_cpmk = $this->kode_cpl 
-            ? Cpmk::where('prodi', $this->prodi)->where('kode_cpmk', 'like', '%' . $cplNumber . '%')->get() 
-            : collect();
-
-        $cpmkNumber = preg_replace('/[^0-9]/', '', $this->kode_cpmk);
-        $filtered_sub_cpmk = $this->kode_cpmk 
-            ? SubCpmk::where('prodi', $this->prodi)->where('kode_sub_cpmk', 'like', '%' . $cpmkNumber . '%')->get() 
-            : collect();
-
-        $this->relasis = RelasiCapaian::with(['mataKuliah', 'cpl', 'cpmk', 'subCpmk'])
-            ->whereHas('mataKuliah', function($q) {
-                $q->where('prodi', $this->prodi);
-            })
+{
+    // 1. Filter List MK untuk Search/Autocomplete (Hanya Prodi User)
+    $list_mk = [];
+    if (strlen($this->searchMK) > 0) {
+        $list_mk = MataKuliah::where('prodi', $this->prodi)
             ->where(function($query) {
-                $query->where('kode_mk', 'like', '%' . $this->search . '%')
-                      ->orWhereHas('mataKuliah', function($q) {
-                          $q->where('nama_mk', 'like', '%' . $this->search . '%');
-                      });
-            })
-            ->orderBy('kode_mk')->orderBy('kode_cpl')->orderBy('kode_cpmk')->get();
-
-        return view('livewire.relasi-capaian-manager', [
-            'list_mk' => $list_mk,
-            'list_cpl' => Cpl::where('prodi', $this->prodi)->get(),
-            'list_cpmk' => $filtered_cpmk,
-            'list_sub_cpmk' => $filtered_sub_cpmk,
-        ]);
+                $query->where('kode_mk', 'like', '%' . $this->searchMK . '%')
+                      ->orWhere('nama_mk', 'like', '%' . $this->searchMK . '%');
+            })->take(5)->get();
     }
+
+    // 2. Filter CPMK berdasarkan pilihan CPL (Hierarki Terkunci Prodi)
+    $cplNumber = preg_replace('/[^0-9]/', '', $this->kode_cpl);
+    $filtered_cpmk = $this->kode_cpl 
+        ? Cpmk::where('prodi', $this->prodi)
+              ->where('kode_cpmk', 'like', '%' . $cplNumber . '%')
+              ->get() 
+        : collect();
+
+    // 3. Filter Sub-CPMK berdasarkan pilihan CPMK (Hierarki Terkunci Prodi)
+    $cpmkNumber = preg_replace('/[^0-9]/', '', $this->kode_cpmk);
+    $filtered_sub_cpmk = $this->kode_cpmk 
+        ? SubCpmk::where('prodi', $this->prodi)
+                 ->where('kode_sub_cpmk', 'like', '%' . $cpmkNumber . '%')
+                 ->get() 
+        : collect();
+
+    // 4. Query Utama Relasi dengan Eager Loading Terfilter
+    $this->relasis = RelasiCapaian::with([
+            'mataKuliah' => function($q) { $q->where('prodi', $this->prodi); },
+            'cpl' => function($q) { $q->where('prodi', $this->prodi); },
+            'cpmk' => function($q) { $q->where('prodi', $this->prodi); },
+            'subCpmk' => function($q) { $q->where('prodi', $this->prodi); }
+        ])
+        // Filter Pivot: Pastikan data relasi ini milik prodi user
+        ->whereHas('mataKuliah', function($q) {
+            $q->where('prodi', $this->prodi);
+        })
+        // Keamanan tambahan untuk CPL, CPMK, dan Sub-CPMK
+        ->whereHas('cpl', function($q) { $q->where('prodi', $this->prodi); })
+        ->whereHas('cpmk', function($q) { $q->where('prodi', $this->prodi); })
+        
+        // Fitur Pencarian
+        ->where(function($query) {
+            $query->where('kode_mk', 'like', '%' . $this->search . '%')
+                  ->orWhereHas('mataKuliah', function($q) {
+                      $q->where('nama_mk', 'like', '%' . $this->search . '%');
+                  })
+                  ->orWhereHas('cpmk', function($q) {
+                      $q->where('deskripsi_cpmk', 'like', '%' . $this->search . '%');
+                  });
+        })
+        ->orderBy('kode_mk')
+        ->orderBy('kode_cpl')
+        ->orderBy('kode_cpmk')
+        ->get();
+
+    return view('livewire.relasi-capaian-manager', [
+        'list_mk' => $list_mk,
+        'list_cpl' => Cpl::where('prodi', $this->prodi)->orderBy('kode_cpl')->get(),
+        'list_cpmk' => $filtered_cpmk,
+        'list_sub_cpmk' => $filtered_sub_cpmk,
+    ]);
+}
 
     public function selectMK($kode, $nama)
     {

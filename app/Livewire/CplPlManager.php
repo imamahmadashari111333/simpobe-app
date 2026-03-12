@@ -29,34 +29,63 @@ class CplPlManager extends Component
     ];
 
     public function mount()
-    {
-        $this->prodi = Auth::user()->profil->prodi ?? null;
-    }
+{
+    // Mengambil prodi dari session profil dosen yang login
+    $this->prodi = Auth::user()->profil->prodi ?? null;
 
-    public function render()
-    {
-        $this->cpl_pls = CplPl::with(['cpl', 'pl'])
-            ->where('prodi', $this->prodi)
-            ->when($this->search, function($query) {
-                $query->where(function($q) {
-                    $q->where('kode_cpl', 'like', '%' . $this->search . '%')
-                      ->orWhere('kode_pl', 'like', '%' . $this->search . '%')
-                      ->orWhereHas('cpl', function($sub) {
-                          $sub->where('deskripsi_cpl', 'like', '%' . $this->search . '%');
-                      })
-                      ->orWhereHas('pl', function($sub) {
-                          $sub->where('profesi', 'like', '%' . $this->search . '%');
-                      });
-                });
-            })
-            ->orderBy('kode_cpl')
-            ->get();
-        
-        return view('livewire.cpl-pl-manager', [
-            'list_cpl' => Cpl::where('prodi', $this->prodi)->orderBy('kode_cpl')->get(),
-            'list_pl' => ProfilLulusan::where('prodi', $this->prodi)->orderBy('kode_pl')->get(),
-        ]);
+    if (!$this->prodi) {
+        session()->flash('error', 'Akses ditolak: Data Prodi tidak ditemukan pada profil Anda.');
     }
+}
+
+public function render()
+{
+    $this->cpl_pls = CplPl::with([
+            'cpl' => function($q) {
+                $q->where('prodi', $this->prodi);
+            }, 
+            'pl' => function($q) {
+                $q->where('prodi', $this->prodi);
+            }
+        ])
+        // 1. Filter tabel pivot utama berdasarkan prodi user
+        ->where('prodi', $this->prodi)
+        
+        // 2. Keamanan ganda: pastikan relasi hanya menarik data prodi yang sama
+        ->whereHas('cpl', function($q) {
+            $q->where('prodi', $this->prodi);
+        })
+        ->whereHas('pl', function($q) {
+            $q->where('prodi', $this->prodi);
+        })
+        
+        // 3. Fitur Pencarian
+        ->when($this->search, function($query) {
+            $query->where(function($q) {
+                $q->where('kode_cpl', 'like', '%' . $this->search . '%')
+                  ->orWhere('kode_pl', 'like', '%' . $this->search . '%')
+                  ->orWhereHas('cpl', function($sub) {
+                      $sub->where('deskripsi_cpl', 'like', '%' . $this->search . '%');
+                  })
+                  ->orWhereHas('pl', function($sub) {
+                      $sub->where('profesi', 'like', '%' . $this->search . '%');
+                  });
+            });
+        })
+        ->orderBy('kode_cpl')
+        ->get();
+    
+    return view('livewire.cpl-pl-manager', [
+        // Dropdown List yang sudah terfilter ketat by prodi
+        'list_cpl' => Cpl::where('prodi', $this->prodi)
+            ->orderBy('kode_cpl')
+            ->get(),
+            
+        'list_pl' => ProfilLulusan::where('prodi', $this->prodi)
+            ->orderBy('kode_pl')
+            ->get(),
+    ]);
+}
 
     public function showModal()
     {
