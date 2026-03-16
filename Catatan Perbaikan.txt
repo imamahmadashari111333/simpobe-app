@@ -1,6 +1,0 @@
-- di menu BK-MK belum bisa klik tambah pemetaan dan aksi edit hapus (Done)
-- tambahkan form ubah prodi di menu profil (Done)
-- cek mulai dari cpl-bk sampai relasi capaian, cek deksripsinya, karena tidak sesuai/belum sesuai prodi
-- kembali di laporan portofolio masih salah link (Done)
-- menu belum muncul di tampilan HP (Done)
-- cek lagi menu portofolio OBE, yang muncul apa sudah bener (Done)

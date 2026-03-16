@@ -27,7 +27,7 @@
             </h1>
             
             <p class="text-lg text-slate-500 max-w-2xl mx-auto mb-12 leading-relaxed">
-                Kelola evaluasi CPMK, visualisasi data mahasiswa, dan hasilkan portofolio dokumen OBE yang siap cetak hanya dalam hitungan detik.
+                Sistem Integrasi Manajemen Pendataan & Outcome-Based Education.
             </p>
 
             <div class="flex flex-col sm:flex-row justify-center items-center gap-4">

@@ -45,6 +45,10 @@ Route::middleware([
 
     Route::middleware(['auth:sanctum', 'verified'])->get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
+    // Route untuk Session Manager (Hanya untuk Level 1)
+    Route::get('/sessions', \App\Livewire\SessionManager::class)
+        ->name('session.index'); // Kamu bisa sesuaikan middleware atau cek manual di komponen
+
     // Kelompok Menu Kurikulum OBE
     Route::prefix('kurikulum-obe')->group(function () {
         // Tabel 1 - Tabel 5: Profil & CPL
@@ -95,15 +99,15 @@ Route::middleware([
         Route::get('/portofolio', [PenilaianController::class, 'portofolio'])->name('portofolio');
     });
     Route::get('/portofolio/download/{kode_mk}/{angkatan}', [PortofolioController::class, 'download'])
-        ->name('portofolio.download');
+    ->name('portofolio.download');
 
     // Pastikan bagian ->name(...) sesuai dengan yang dipanggil di view
     Route::get('/penilaian-obe/portofolio', [PortofolioController::class, 'index'])
-        ->name('portofolio.index');
+    ->name('portofolio.index');
 
     // Route untuk download (sudah benar menggunakan kode_mk dan angkatan)
     Route::match(['get', 'post'], '/portofolio/download/{kode_mk}/{angkatan}', [PortofolioController::class, 'download'])
-        ->name('portofolio.download');
+    ->name('portofolio.download');
     // Route download yang sudah ada sebelumnya
     Route::match(['get', 'post'], '/portofolio/download/{kode_mk}/{angkatan}', [PortofolioController::class, 'download'])->name('portofolio.download');
 
