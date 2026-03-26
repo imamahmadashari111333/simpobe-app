@@ -7,7 +7,6 @@ use App\Models\Portofolio;
 use App\Models\MataKuliah;
 use App\Models\Mahasiswa;
 use App\Models\RelasiCapaian;
-use App\Models\PemetaanMkCplCpmk;
 use App\Models\MetodePenilaian;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -46,27 +45,33 @@ public function index(Request $request)
         ->distinct()
         ->get();
 
+        // dd($data_portofolio);
+
     $data_portofolio = $data_portofolio->map(function ($item) {
-        $angkatan_item = substr($item->tahun_akademik, 0, 4);
 
-        $portofolio = Portofolio::where('kode_mk', $item->kode_mk)
-            ->where('angkatan', $angkatan_item)
-            ->first();
+    $portofolio = Portofolio::where('kode_mk', $item->kode_mk)
+        ->first();     
 
-        if ($portofolio) {
-            $item->hasPortofolio = true;
-            $item->angkatan = $portofolio->angkatan;
-            // TAMBAHKAN LOGIKA CHECK DI SINI
-            $item->is_penelitian = !empty($portofolio->integrasi_penelitian);
-            $item->is_pengabmas = !empty($portofolio->integrasi_pengabmas);
-        } else {
-            $item->hasPortofolio = false;
-            $item->angkatan = $angkatan_item;
-            $item->is_penelitian = false;
-            $item->is_pengabmas = false;
-        }
-        return $item;
-    });
+    if ($portofolio) {
+        $item->hasPortofolio = true;
+        $item->angkatan = $portofolio->angkatan;
+
+        // LOGIKA CHECK
+        $item->is_penelitian = !empty($portofolio->integrasi_penelitian);
+        $item->is_pengabmas = !empty($portofolio->integrasi_pengabmas);
+
+    } else {
+        $item->hasPortofolio = false;
+
+        // fallback kalau tetap ingin isi (opsional)
+        $item->angkatan = null;
+
+        $item->is_penelitian = false;
+        $item->is_pengabmas = false;
+    }
+
+    return $item;
+});
 
     return view('portofolio.index', compact('data_portofolio', 'list_tahun', 'filterTahun'));
 }
@@ -99,11 +104,13 @@ public function download(Request $request, $kode_mk, $angkatan)
     // 3. Relasi & Metode
     $relasis = RelasiCapaian::with(['cpl', 'cpmk', 'subCpmk'])->where('kode_mk', $kode_mk)->get();
     $relasi_grouped = $relasis->groupBy(['kode_cpl', 'kode_cpmk']);
-    $metode_penilaians = MetodePenilaian::where('kode_mk', $kode_mk)->where('prodi', $prodiUser)->get();
+    $metode_penilaians = MetodePenilaian::where('kode_mk', $kode_mk)->where('prodi', $prodiUser)->orderBy('kode_cpmk', 'asc')->get();
 
     // 4. Mahasiswa & Nilai
     $portofolio = Portofolio::with('details')->where('kode_mk', $kode_mk)->where('angkatan', $angkatan)->firstOrFail();
-    $list_cpmk = PemetaanMkCplCpmk::where('kode_mk', $kode_mk)->get();
+    $list_cpmk = RelasiCapaian::where('kode_mk', $kode_mk)->orderBy('kode_cpl', 'asc')
+    ->orderBy('kode_cpmk', 'asc')
+    ->get();
 
     $students = Mahasiswa::where('angkatan', $angkatan)
         ->where('prodi', $prodiUser)
@@ -189,6 +196,7 @@ public function hitungNilai($student, $kode_cpmk, $kode_mk_input = null, $prodi_
     $metodes = MetodePenilaian::where('kode_mk', $mk)
         ->where('prodi', $prodi)
         ->where('kode_cpmk', $kode_cpmk)
+        ->orderBy('kode_cpmk', 'asc')
         ->get();
 
     $total_kontribusi = 0;

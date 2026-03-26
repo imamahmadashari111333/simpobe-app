@@ -5,7 +5,7 @@ namespace App\Livewire;
 use Livewire\Component;
 use App\Models\Mahasiswa;
 use App\Models\MataKuliah;
-use App\Models\PemetaanMkCplCpmk;
+use App\Models\RelasiCapaian;
 use App\Models\MetodePenilaian;
 use App\Models\Portofolio;
 use App\Models\PortofolioDetail;
@@ -105,7 +105,9 @@ class EvaluasiCpmkManager extends Component
             'dosen_anggota2' => $info->dosen3 ?? null,
         ];
 
-        $this->list_cpmk = PemetaanMkCplCpmk::where('kode_mk', $this->kode_mk)->get();
+        $this->list_cpmk = RelasiCapaian::where('kode_mk', $this->kode_mk)->orderBy('kode_cpl', 'asc')
+    ->orderBy('kode_cpmk', 'asc')
+    ->get();
 
         $portofolio = Portofolio::with('details')
             ->where('kode_mk', $this->kode_mk)
@@ -160,84 +162,88 @@ class EvaluasiCpmkManager extends Component
         ]);
     }
 
-    public function savePortofolio()
-    {
-        // 1. Validasi
-        $this->validate([
-            'link_rps' => 'required|url',
-            'lik_jurnal_pengajaran' => 'required|url',
-            'link_presensi_kehadiran_mahasiswa' => 'required|url',
-            'link_bahan_ajar' => 'required|url',
-            'link_analisis_soal' => 'required|url',
-            'link_sampel_pekerjaan_mahasiswa' => 'required|url',
-            'link_nilai_panjang' => 'required|url',
-            
-            'integrasi_penelitian' => $this->has_penelitian ? 'required|min:5' : 'nullable',
-            'integrasi_pengabmas' => $this->has_pengabmas ? 'required|min:5' : 'nullable',
+public function savePortofolio()
+{
+    // 1. Validasi
+    $this->validate([
+        'link_rps' => 'required|url',
+        'lik_jurnal_pengajaran' => 'required|url',
+        'link_presensi_kehadiran_mahasiswa' => 'required|url',
+        'link_bahan_ajar' => 'required|url',
+        'link_analisis_soal' => 'required|url',
+        'link_sampel_pekerjaan_mahasiswa' => 'required|url',
+        'link_nilai_panjang' => 'required|url',
+        
+        'integrasi_penelitian' => $this->has_penelitian ? 'required|min:5' : 'nullable',
+        'integrasi_pengabmas' => $this->has_pengabmas ? 'required|min:5' : 'nullable',
 
-            'cpmk_inputs.*.refleksi' => 'required|min:5',
-            'cpmk_inputs.*.perbaikan' => 'required|min:5',
-        ], [
-            'cpmk_inputs.*.refleksi.required' => 'Refleksi harus diisi.',
-            'cpmk_inputs.*.refleksi.min' => 'Refleksi minimal 5 karakter.',
-            'cpmk_inputs.*.perbaikan.required' => 'Perbaikan harus diisi.',
-            'integrasi_penelitian.required' => 'Judul penelitian integrasi harus diisi jika dicentang.',
-            'integrasi_pengabmas.required' => 'Judul pengabmas integrasi harus diisi jika dicentang.',
-        ]);
+        'cpmk_inputs.*.refleksi' => 'required|min:5',
+        'cpmk_inputs.*.perbaikan' => 'required|min:5',
+    ], [
+        'cpmk_inputs.*.refleksi.required' => 'Refleksi harus diisi.',
+        'cpmk_inputs.*.refleksi.min' => 'Refleksi minimal 5 karakter.',
+        'cpmk_inputs.*.perbaikan.required' => 'Perbaikan harus diisi.',
+        'integrasi_penelitian.required' => 'Judul penelitian integrasi harus diisi jika dicentang.',
+        'integrasi_pengabmas.required' => 'Judul pengabmas integrasi harus diisi jika dicentang.',
+    ]);
 
-        if (!$this->prodi_login) {
-            $this->prodi_login = Auth::user()->profil->prodi ?? null;
-        }
-
-        try {
-            // 3. Simpan Portofolio Utama
-            $portofolio = Portofolio::updateOrCreate(
-                [
-                    'kode_mk' => $this->kode_mk, 
-                    'angkatan' => $this->angkatan
-                ],
-                [
-                    'prodi' => $this->prodi_login,
-                    'link_rps' => $this->link_rps,
-                    'lik_jurnal_pengajaran' => $this->lik_jurnal_pengajaran,
-                    'integrasi_penelitian' => $this->has_penelitian ? $this->integrasi_penelitian : null,
-                    'integrasi_pengabmas' => $this->has_pengabmas ? $this->integrasi_pengabmas : null,
-                    'link_presensi_kehadiran_mahasiswa' => $this->link_presensi_kehadiran_mahasiswa,
-                    'link_bahan_ajar' => $this->link_bahan_ajar,
-                    'link_analisis_soal' => $this->link_analisis_soal,
-                    'link_sampel_pekerjaan_mahasiswa' => $this->link_sampel_pekerjaan_mahasiswa,
-                    'link_nilai_panjang' => $this->link_nilai_panjang,
-                ]
-            );
-
-            // 4. Simpan Detail
-            if (!empty($this->cpmk_inputs)) {
-                foreach ($this->cpmk_inputs as $kode_cpmk => $input) {
-                    PortofolioDetail::updateOrCreate(
-                        [
-                            'portofolio_id' => $portofolio->id, 
-                            'kode_cpmk' => $kode_cpmk
-                        ],
-                        [
-                            'refleksi_analisis' => $input['refleksi'], 
-                            'program_perbaikan' => $input['perbaikan']
-                        ]
-                    );
-                }
-            }
-
-            $this->confirmingPortofolio = false;
-            
-            if (method_exists($this, 'loadData')) {
-                $this->loadData();
-            }
-
-            session()->flash('message', 'Berhasil disimpan untuk Prodi ' . $this->prodi_login);
-            
-        } catch (\Exception $e) {
-            session()->flash('error', 'Terjadi kesalahan: ' . $e->getMessage());
-        }
+    // 2. Pastikan prodi terisi (Fallback ke profil user jika kosong)
+    if (!$this->prodi_login) {
+        $this->prodi_login = Auth::user()->profil->prodi ?? null;
     }
+
+    try {
+        // 3. Simpan Portofolio Utama
+        $portofolio = Portofolio::updateOrCreate(
+            [
+                'kode_mk' => $this->kode_mk, 
+                'angkatan' => $this->angkatan,
+                // Masukkan prodi ke search condition agar data per prodi terpisah jika MK-nya sama
+                'prodi' => $this->prodi_login, 
+            ],
+            [
+                'link_rps' => $this->link_rps,
+                'lik_jurnal_pengajaran' => $this->lik_jurnal_pengajaran,
+                'integrasi_penelitian' => $this->has_penelitian ? $this->integrasi_penelitian : null,
+                'integrasi_pengabmas' => $this->has_pengabmas ? $this->integrasi_pengabmas : null,
+                'link_presensi_kehadiran_mahasiswa' => $this->link_presensi_kehadiran_mahasiswa,
+                'link_bahan_ajar' => $this->link_bahan_ajar,
+                'link_analisis_soal' => $this->link_analisis_soal,
+                'link_sampel_pekerjaan_mahasiswa' => $this->link_sampel_pekerjaan_mahasiswa,
+                'link_nilai_panjang' => $this->link_nilai_panjang,
+            ]
+        );
+
+        // 4. Simpan Detail
+        if (!empty($this->cpmk_inputs)) {
+            foreach ($this->cpmk_inputs as $kode_cpmk => $input) {
+                PortofolioDetail::updateOrCreate(
+                    [
+                        'portofolio_id' => $portofolio->id, 
+                        'kode_cpmk' => $kode_cpmk
+                    ],
+                    [
+                        // Pastikan kolom 'prodi' ada di tabel portofolio_details
+                        'prodi' => $this->prodi_login, 
+                        'refleksi_analisis' => $input['refleksi'], 
+                        'program_perbaikan' => $input['perbaikan']
+                    ]
+                );
+            }
+        }
+
+        $this->confirmingPortofolio = false;
+        
+        if (method_exists($this, 'loadData')) {
+            $this->loadData();
+        }
+
+        session()->flash('message', 'Berhasil disimpan untuk Prodi ' . $this->prodi_login);
+        
+    } catch (\Exception $e) {
+        session()->flash('error', 'Terjadi kesalahan: ' . $e->getMessage());
+    }
+}
 
     // --- Helper Penilaian ---
     public function getKetercapaian($total)
@@ -337,6 +343,7 @@ class EvaluasiCpmkManager extends Component
 
             $all_metodes = MetodePenilaian::where('kode_mk', $this->kode_mk)
                 ->where('prodi', $this->prodi_login)
+                ->orderBy('kode_cpmk', 'asc')
                 ->get();
 
             foreach ($this->list_cpmk as $c) {
