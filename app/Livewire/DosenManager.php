@@ -50,6 +50,8 @@ class DosenManager extends Component
         if (auth()->user()->level != 1) return;
 
         $profilId = 'NULL';
+        $existingUser = null;
+
         if ($this->userId) {
             $existingUser = User::find($this->userId);
             $profilId = ($existingUser && $existingUser->profil) ? $existingUser->profil->id : 'NULL';
@@ -62,17 +64,21 @@ class DosenManager extends Component
             'nik' => 'required|unique:dosen_profils,nik,' . $profilId,
             'prodi' => 'required',
             'fakultas' => 'required',
-            'jabatan_fungsional' => 'required', // Validasi Tambahan
+            'jabatan_fungsional' => 'required',
         ]);
 
+        // Simpan atau Update User
         $user = User::updateOrCreate(['id' => $this->userId], [
             'name' => $this->name,
             'email' => $this->email,
-            'password' => $this->password ? Hash::make($this->password) : User::find($this->userId)->password,
-            'role' => $this->userId ? User::find($this->userId)->role : 'dosen',
+            // Jika password diisi, hash password baru. Jika kosong, gunakan password lama dari $existingUser.
+            'password' => $this->password ? Hash::make($this->password) : ($existingUser ? $existingUser->password : null),
+            // Update: role sekarang menggunakan jabatan_struktural
+            'role' => $this->jabatan_struktural, 
             'level' => $this->level ? 1 : 0,
         ]);
 
+        // Simpan atau Update Profil Dosen
         DosenProfil::updateOrCreate(['user_id' => $user->id], [
             'nik' => $this->nik,
             'nidn' => $this->nidn,
@@ -80,7 +86,7 @@ class DosenManager extends Component
             'gelar_belakang' => $this->gelar_belakang,
             'prodi' => $this->prodi,
             'fakultas' => $this->fakultas,
-            'jabatan_fungsional' => $this->jabatan_fungsional, // Penyimpanan Tambahan
+            'jabatan_fungsional' => $this->jabatan_fungsional,
             'jabatan_struktural' => $this->jabatan_struktural,
         ]);
 
@@ -104,7 +110,7 @@ class DosenManager extends Component
         $this->gelar_belakang = $user->profil->gelar_belakang ?? '';
         $this->fakultas = $user->profil->fakultas ?? '';
         $this->prodi = $user->profil->prodi ?? '';
-        $this->jabatan_fungsional = $user->profil->jabatan_fungsional ?? ''; // Load data saat edit
+        $this->jabatan_fungsional = $user->profil->jabatan_fungsional ?? '';
         $this->jabatan_struktural = $user->profil->jabatan_struktural ?? '';
         
         $this->confirmingDosenAddition = true;

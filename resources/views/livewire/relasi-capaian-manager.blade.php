@@ -144,45 +144,46 @@
                 </div>
 
                 {{-- 2. Pilih CPL --}}
-                <div>
-                    <x-label value="Pilih CPL" />
-                    <select wire:model.live="kode_cpl" class="w-full border-gray-300 rounded-md text-sm shadow-sm focus:ring-blue-500">
-                        <option value="">-- Pilih CPL --</option>
-                        @foreach($list_cpl as $cpl) 
-                            <option value="{{ $cpl->kode_cpl }}">
-                                {{ $cpl->kode_cpl }} - {{ Str::limit($cpl->deskripsi_cpl, 80) }}
-                            </option> 
-                        @endforeach
-                    </select>
-                </div>
+<div>
+    <x-label value="Pilih CPL" />
+    <select wire:model.live="kode_cpl" class="w-full border-gray-300 rounded-md text-sm shadow-sm focus:ring-blue-500">
+        <option value="">-- Pilih CPL --</option>
+        @foreach($list_cpl as $cpl) 
+            <option value="{{ $cpl->kode_cpl }}">
+                {{ $cpl->kode_cpl }} - {{ Str::limit($cpl->deskripsi_cpl, 80) }}
+            </option> 
+        @endforeach
+    </select>
+</div>
 
-                <hr class="border-gray-100">
+<hr class="border-gray-100">
 
-                {{-- 3. CPMK --}}
-                <div class="{{ !$kode_cpl ? 'opacity-40 pointer-events-none' : '' }}">
-                    <div class="flex justify-between items-center mb-1">
-                        <x-label value="CPMK" />
-                        <button type="button" wire:click="toggleCreateCpmk" class="text-[9px] font-bold uppercase px-2 py-1 rounded {{ $is_creating_cpmk ? 'bg-gray-200 text-gray-700' : 'bg-blue-600 text-white' }}">
-                            {{ $is_creating_cpmk ? 'Batal' : '+ Baru' }}
-                        </button>
-                    </div>
-                    
-                    @if($is_creating_cpmk)
-                        <div class="p-3 bg-blue-50 border border-blue-100 rounded-lg space-y-2">
-                            <input type="text" wire:model="kode_cpmk" class="w-full border-gray-300 rounded text-sm font-mono focus:ring-blue-500">
-                            <textarea wire:model="new_deskripsi_cpmk" placeholder="Tulis Deskripsi CPMK..." class="w-full border-gray-300 rounded text-sm focus:ring-blue-500" rows="2"></textarea>
-                        </div>
-                    @else
-                        <select wire:model.live="kode_cpmk" class="w-full border-gray-300 rounded-md text-sm shadow-sm focus:ring-blue-500">
-                            <option value="">-- Pilih CPMK --</option>
-                            @foreach($list_cpmk as $cpmk) 
-                                <option value="{{ $cpmk->kode_cpmk }}">
-                                    {{ $cpmk->kode_cpmk }} - {{ Str::limit($cpmk->deskripsi_cpmk, 80) }}
-                                </option> 
-                            @endforeach
-                        </select>
-                    @endif
-                </div>
+{{-- 3. CPMK --}}
+{{-- PERBAIKAN: Hapus pengecekan !$kode_cpl di class div di bawah ini --}}
+<div>
+    <div class="flex justify-between items-center mb-1">
+        <x-label value="CPMK" />
+        <button type="button" wire:click="toggleCreateCpmk" class="text-[9px] font-bold uppercase px-2 py-1 rounded {{ $is_creating_cpmk ? 'bg-gray-200 text-gray-700' : 'bg-blue-600 text-white' }}">
+            {{ $is_creating_cpmk ? 'Batal' : '+ Baru' }}
+        </button>
+    </div>
+    
+    @if($is_creating_cpmk)
+        <div class="p-3 bg-blue-50 border border-blue-100 rounded-lg space-y-2">
+            <input type="text" wire:model="kode_cpmk" class="w-full border-gray-300 rounded text-sm font-mono focus:ring-blue-500">
+            <textarea wire:model="new_deskripsi_cpmk" placeholder="Tulis Deskripsi CPMK..." class="w-full border-gray-300 rounded text-sm focus:ring-blue-500" rows="2"></textarea>
+        </div>
+    @else
+        <select wire:model.live="kode_cpmk" class="w-full border-gray-300 rounded-md text-sm shadow-sm focus:ring-blue-500">
+            <option value="">-- Pilih CPMK --</option>
+            @foreach($list_cpmk as $cpmk) 
+                <option value="{{ $cpmk->kode_cpmk }}">
+                    {{ $cpmk->kode_cpmk }} - {{ Str::limit($cpmk->deskripsi_cpmk, 80) }}
+                </option> 
+            @endforeach
+        </select>
+    @endif
+</div>
 
                 {{-- 4. Sub-CPMK --}}
                 <div class="{{ !$kode_cpmk ? 'opacity-40 pointer-events-none' : '' }}">
